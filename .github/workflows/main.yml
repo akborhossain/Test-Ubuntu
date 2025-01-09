@@ -55,5 +55,20 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           timeout: 300s
           script: |
-            mkdir -p ~/var/www/test
-            scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -r /home/runner/work/Test-Ubuntu/Test-Ubuntu/publish/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/test
+            [ -d ~/test ] && rm -rf ~/test
+            mkdir ~/test
+            cd ~/test
+            git init
+            git remote remove origin 2>/dev/null || true
+            git remote add origin https://akborhossain:${{ secrets.GITHUB_TOKEN }}@github.com/akborhossain/ims.git
+            git pull origin main
+            dotnet restore
+            dotnet build -c Release
+            dotnet publish -o ./publish
+            # Ensure remote directory exists
+            ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /var/www/app1"
+            # Transfer files
+            scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -r ./publish/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app1
+            # Cleanup
+            cd ~
+            rm -rf test
