@@ -1,0 +1,74 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build -c Release --no-restore
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Check Working Directory
+        run: pwd
+      
+      - name: Publish .NET App   
+        run: |
+          cd Test-Ubuntu
+          dotnet publish -o ./publish
+        
+      - name: List Publish Directory 
+        run: ls -R
+
+      - name: Add SSH Host Key to Known Hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          chmod 777 ~/.ssh/known_hosts
+          cat ~/.ssh/known_hosts  # Optional: Debug to verify key added
+
+      - name: Deploying Script
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          timeout: 300s
+          script: |
+            [ -d ~/test ] && rm -rf ~/test
+            mkdir ~/test
+            cd ~/test
+            git init
+            git remote remove origin 2>/dev/null || true
+            git remote add origin https://akborhossain:${{ secrets.TOKEN }}@github.com/akborhossain/Test-Ubuntu.git
+            git pull origin main
+            dotnet restore
+            dotnet build -c Release
+            dotnet publish ./Test-Ubuntu -c Release -o ./publish
+            # Ensure remote directory exists
+            ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /var/www/app1"
+            # Transfer files
+            scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -r ./publish/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app1
+            # Cleanup
+            cd ~
+            rm -rf test
