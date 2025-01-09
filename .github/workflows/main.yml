@@ -60,11 +60,11 @@ jobs:
             cd ~/test
             git init
             git remote remove origin 2>/dev/null || true
-            git remote add origin https://akborhossain:${{ secrets.GITHUB_TOKEN }}@github.com/akborhossain/ims.git
+            git remote add origin https://akborhossain:${{ secrets.TOKEN }}@github.com/akborhossain/Test-Ubuntu.git
             git pull origin main
             dotnet restore
             dotnet build -c Release
-            dotnet publish -o ./publish
+            dotnet publish ./Test-Ubuntu -c Release -o ./publish
             # Ensure remote directory exists
             ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /var/www/app1"
             # Transfer files
