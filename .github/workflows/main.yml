@@ -54,4 +54,4 @@ jobs:
           timeout: 300s
           script: |
             mkdir -p ~/var/www/test
-            scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -r ./Test-Ubuntu/Test-Ubuntu/publish/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/test
+            scp -P ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no -r /home/runner/work/Test-Ubuntu/Test-Ubuntu/publish/* ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/test
