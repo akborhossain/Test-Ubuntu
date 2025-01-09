@@ -32,7 +32,9 @@ jobs:
         run: pwd
       
       - name: Publish .NET App   
-        run: dotnet publish -o ./publish
+        run: |
+          cd Test-Ubuntu
+          dotnet publish -o ./publish
         
       - name: List Publish Directory 
         run: ls -R
