@@ -58,10 +58,12 @@ jobs:
             [ -d ~/test ] && rm -rf ~/test
             mkdir ~/test
             cd ~/test
+            git config --global init.defaultBranch main
             git init
             git remote remove origin 2>/dev/null || true
-            git remote add origin https://akborhossain:${{ secrets.TOKEN }}@github.com/akborhossain/Test-Ubuntu.git
-            git pull origin main
+            git remote add origin https://akborhossain:${{ secrets.GITHUB_TOKEN }}@github.com/akborhossain/Test-Ubuntu.git
+            git config --global credential.helper store
+            git pull origin main 2>/dev/null
             dotnet restore
             dotnet build -c Release
             dotnet publish ./Test-Ubuntu -c Release -o ./publish
